@@ -1,26 +1,4 @@
-from flask import Flask, render_template, request,jsonify
-from flask_cors import CORS,cross_origin
-import requests
-from bs4 import BeautifulSoup
-from urllib.request import urlopen as uReq
-import logging
-import pymongo
-logging.basicConfig(filename="scrapper.log" , level=logging.INFO)
-import os
-
-app = Flask(__name__)
-
-@app.route("/", methods = ['GET'])
-def homepage():
-    return render_template("index.html")
-
-@app.route("/review" , methods = ['POST' , 'GET'])
-def index():
-    if request.method == 'POST':
-                try:
-
-                    # query to search for images
-                    query = request.form['content'].replace(" ","")
+query = request.form['content'].replace(" ","")
 
                             # directory to store downloaded images
                     save_directory = "images/"
@@ -50,7 +28,7 @@ def index():
                     for index,image_tag in enumerate(image_tags):
                                 # get the image source URL
                                 image_url = image_tag['src']
-                                #print(image_url)
+                                print(image_url)
                                 
                                 # send a request to the image URL and save the image
                                 image_data = requests.get(image_url).content
@@ -58,20 +36,3 @@ def index():
                                 img_data.append(mydict)
                                 with open(os.path.join(save_directory, f"{query}_{image_tags.index(image_tag)}.jpg"), "wb") as f:
                                     f.write(image_data)
-                    client = pymongo.MongoClient("mongodb+srv://Abioyepwskills:Abpwskills@cluster0.p8luxch.mongodb.net/?retryWrites=true&w=majority")
-                    db = client['image_scrap']
-                    review_col = db['image_scrap_data']
-                    review_col.insert_many(img_data)          
-
-                    return "image laoded"
-                except Exception as e:
-                    logging.info(e)
-                    return 'something is wrong'
-            # return render_template('results.html')
-
-    else:
-        return render_template('index.html')
-
-
-if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=8000)
